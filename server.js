@@ -154,6 +154,7 @@ app.post("/api/insertManyCategories", async (req, res) => {
 app.post("/api/register", register);
 app.post("/api/login", login);
 app.get("/api/information/reader", ReaderController.informationReader);
+app.get("/api/isReader", ReaderController.isReader);
 app.post("/api/auth/google", SessionController.logInWithGoogleAccount);
 app.post("/api/existEmail", isExistEmail);
 app.get("/api/refresh", refresh);
@@ -169,8 +170,13 @@ app.get("/api/category/:name", BookController.getBookCategory);
 // admin
 app.post("/api/dashboard/employeeCreate", EmployeeController.addEmployee);
 app.post("/api/dashboard/login", EmployeeController.employeeLogin);
+app.get("/api/dashboard/isEmployee", EmployeeController.isEmployee);
 app.get("/api/dashboard/pending", BookBorrowController.manageBorrowRequests);
 app.put("/api/dashboard/updateState/:id", BookBorrowController.nextState);
+app.put(
+  "/api/dashboard/autoupdate",
+  BookBorrowController.autoCancelExpiredApproved
+);
 
 app.listen(3000, function () {
   console.log("Server is listening");

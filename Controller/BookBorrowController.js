@@ -90,10 +90,17 @@ const getAllRequestReader = async (req, res) => {
   }
 };
 
+const autoCancelExpiredApproved = () => {
+  try {
+    BookBorrowingModel.autoCancelExpiredApproved();
+  } catch (error) {}
+};
+
 module.exports = {
   borrowBook,
   manageBorrowRequests,
   nextState,
   CancelRequest,
   getAllRequestReader,
+  autoCancelExpiredApproved,
 };

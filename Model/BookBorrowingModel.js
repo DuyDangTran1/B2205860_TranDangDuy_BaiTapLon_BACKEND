@@ -107,7 +107,7 @@ function nextStatus(status) {
 }
 
 const updateStatus = async (id, user) => {
-  console.log(user.EMAIL);
+  // console.log(user.EMAIL);
   await connectDB();
   const BorrowBookCollection = getCollection("THEODOIMUONSACH");
   try {
@@ -162,6 +162,7 @@ const updateStatus = async (id, user) => {
         {
           $set: {
             MASNV: nv.MASNV,
+            NGAYDUYET: new Date(),
             TRANGTHAI: nextStatus(borrow_request.TRANGTHAI),
           },
         }
@@ -183,9 +184,11 @@ const updateStatus = async (id, user) => {
 };
 
 const CancelBorrowRequest = async (id, user) => {
+  console.log(user.Email);
   await connectDB();
   const BorrowBookCollection = getCollection("THEODOIMUONSACH");
-  const employee = await EmployeeModel.findEmployee({ Email: user.EMAIL });
+  const employee = await EmployeeModel.findEmployee({ Email: user.Email });
+  console.log(employee);
   //Nếu là nhân viên duyệt thì
   if (employee) {
     return BorrowBookCollection.updateOne(
@@ -193,6 +196,7 @@ const CancelBorrowRequest = async (id, user) => {
       {
         $set: {
           MASNV: employee.MASNV,
+          LYDOHUY: "Nhân viên đã hủy yêu cầu của bạn",
           TRANGTHAI: "Đã bị hủy",
         },
       }
@@ -204,6 +208,7 @@ const CancelBorrowRequest = async (id, user) => {
       {
         $set: {
           TRANGTHAI: "Đã bị hủy",
+          LYDOHUY: "Bạn đã hủy yêu cầu",
         },
       }
     );
@@ -320,6 +325,26 @@ const countBorrowRequestByBookCode = async (MASACH) => {
   });
 };
 
+async function autoCancelExpiredApproved() {
+  await connectDB();
+  const BorrowBookCollection = getCollection("THEODOIMUONSACH");
+
+  const fiveDaysAgo = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
+
+  return await BorrowBookCollection.updateMany(
+    {
+      TRANGTHAI: "Đã duyệt",
+      NGAYDUYET: { $lte: fiveDaysAgo },
+    },
+    {
+      $set: {
+        TRANGTHAI: "Đã bị hủy",
+        LYDOHUY: "Quá hạn 5 ngày không đến nhận",
+      },
+    }
+  );
+}
+
 module.exports = {
   createdBorrow,
   getAllBorrowRequest,
@@ -330,4 +355,5 @@ module.exports = {
   getAllBorrowRequestReader,
   getTopBorrowBooks,
   countBorrowRequestByBookCode,
+  autoCancelExpiredApproved,
 };
