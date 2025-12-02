@@ -240,6 +240,19 @@ const updateReader = async (req, res) => {
   }
 };
 
+const isReader = async (req, res) => {
+  try {
+    const reader = await findReader({ EMAIL: req.user.EMAIL });
+    if (!reader) {
+      return res.status(400).json({ message: "Không phải đọc giả" });
+    }
+
+    return res.status(200).json({ message: "Là đọc giả" });
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -248,6 +261,5 @@ module.exports = {
   isExistPhone,
   updateReader,
   informationReader,
+  isReader,
 };
-
-

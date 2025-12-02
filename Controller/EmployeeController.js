@@ -146,7 +146,23 @@ const employeeLogin = async (req, res) => {
   }
 };
 
+const isEmployee = async (req, res) => {
+  try {
+    const employee = await EmployeeModel.findEmployee({
+      Email: req.user.Email,
+    });
+    if (!employee) {
+      return res.status(400).json({ message: "Không phải nhân viên" });
+    }
+
+    return res.status(200).json({ message: "Là nhân viên" });
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
 module.exports = {
   addEmployee,
   employeeLogin,
+  isEmployee,
 };
