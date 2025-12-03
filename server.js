@@ -177,6 +177,7 @@ app.put(
   "/api/dashboard/autoupdate",
   BookBorrowController.autoCancelExpiredApproved
 );
+app.get("/api/dashboard/statistics", BookBorrowController.getStatistics);
 
 app.listen(3000, function () {
   console.log("Server is listening");

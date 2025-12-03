@@ -96,6 +96,17 @@ const autoCancelExpiredApproved = () => {
   } catch (error) {}
 };
 
+const getStatistics = async (req, res) => {
+  try {
+    const stats = await BookBorrowingModel.getStatisticsByMonth();
+    console.log(stats);
+    res.status(200).json(stats);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
 module.exports = {
   borrowBook,
   manageBorrowRequests,
@@ -103,4 +114,5 @@ module.exports = {
   CancelRequest,
   getAllRequestReader,
   autoCancelExpiredApproved,
+  getStatistics,
 };

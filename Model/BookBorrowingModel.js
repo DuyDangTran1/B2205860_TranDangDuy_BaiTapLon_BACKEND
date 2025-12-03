@@ -345,6 +345,82 @@ async function autoCancelExpiredApproved() {
   );
 }
 
+const getStatisticsByMonth = async () => {
+  await connectDB();
+  const col = getCollection("THEODOIMUONSACH");
+
+  // 1. Số lượt mượn theo tháng (dựa trên CREATED)
+  const borrowData = await col
+    .aggregate([
+      { $match: {} },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%m/%Y", date: "$CREATED" } },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ])
+    .toArray();
+
+  // 2. Số lượt trả muộn theo tháng
+  const lateData = await col
+    .aggregate([
+      { $match: { TRANGTHAI: "Đã trả muộn" } },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%m/%Y", date: "$NGAYTRA" } },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ])
+    .toArray();
+
+  // 3. Thống kê trạng thái
+  const statusData = await col
+    .aggregate([
+      {
+        $group: {
+          _id: "$TRANGTHAI",
+          count: { $sum: 1 },
+        },
+      },
+    ])
+    .toArray();
+
+  // Chuẩn hóa output
+  const months = borrowData.map((d) => d._id);
+  const borrowCounts = borrowData.map((d) => d.count);
+
+  const lateCounts = months.map((m) => {
+    const item = lateData.find((d) => d._id === m);
+    return item ? item.count : 0;
+  });
+
+  const statusLabels = [
+    "Đang chờ duyệt",
+    "Đã duyệt",
+    "Đã mượn",
+    "Đã trả",
+    "Đã trả muộn",
+    "Đã bị hủy",
+  ];
+
+  const statusCounts = statusLabels.map((label) => {
+    const item = statusData.find((s) => s._id === label);
+    return item ? item.count : 0;
+  });
+
+  return {
+    months,
+    borrowCounts,
+    lateCounts,
+    statusLabels,
+    statusCounts,
+  };
+};
+
 module.exports = {
   createdBorrow,
   getAllBorrowRequest,
@@ -356,4 +432,5 @@ module.exports = {
   getTopBorrowBooks,
   countBorrowRequestByBookCode,
   autoCancelExpiredApproved,
+  getStatisticsByMonth,
 };
