@@ -200,6 +200,7 @@ app.put(
 app.get("/api/dashboard/statistics", BookBorrowController.getStatistics);
 app.delete("/api/dashboard/book/:id", BookController.deleteBook);
 app.get("/api/dashboard/users", ReaderController.getDashboardUsers);
+app.delete("/api/dashboard/logout", SessionController.logOutEmployee);
 app.listen(3000, function () {
   console.log("Server is listening");
 });
