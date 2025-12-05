@@ -421,6 +421,22 @@ const getStatisticsByMonth = async () => {
   };
 };
 
+const countViolation = async (madocgia) => {
+  await connectDB();
+  const BorrowCollection = getCollection("THEODOIMUONSACH");
+
+  return await BorrowCollection.countDocuments({
+    MADOCGIA: madocgia,
+    $or: [
+      { TRANGTHAI: "Đã trả muộn" },
+      {
+        TRANGTHAI: "Đã bị hủy",
+        LYDOHUY: "Quá hạn 5 ngày không đến nhận",
+      },
+    ],
+  });
+};
+
 module.exports = {
   createdBorrow,
   getAllBorrowRequest,
@@ -433,4 +449,5 @@ module.exports = {
   countBorrowRequestByBookCode,
   autoCancelExpiredApproved,
   getStatisticsByMonth,
+  countViolation,
 };
