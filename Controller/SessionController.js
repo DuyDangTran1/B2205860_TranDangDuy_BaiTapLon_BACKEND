@@ -143,8 +143,19 @@ const logOut = async (req, res) => {
   }
 };
 
+const logOutEmployee = async (req, res) => {
+  try {
+    await removeSessionByEmailEmployee(req.user.Email);
+    res.status(200).json({ message: "Đăng xuất thành công" });
+  } catch (error) {
+    console(error);
+    res.status(500).json({ message: "Đăng xuất thất bại" });
+  }
+};
+
 module.exports = {
   refresh,
   logOut,
   logInWithGoogleAccount,
+  logOutEmployee,
 };

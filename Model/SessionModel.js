@@ -40,10 +40,17 @@ const removeSessionByEmail = async (user) => {
   return await sessionCollection.deleteOne({ email: user.EMAIL });
 };
 
+const removeSessionByEmailEmployee = async (Email) => {
+  await connectDB();
+  const sessionCollection = await getCollection("Session");
+  return await sessionCollection.deleteOne({ email: Email });
+};
+
 module.exports = {
   createRefreshToken,
   isExistSession,
   findSessionByEmail,
   findSessionByRefresh,
   removeSessionByEmail,
+  removeSessionByEmailEmployee,
 };
