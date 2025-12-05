@@ -1,12 +1,15 @@
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
+const BookBorrowingModel = require("../Model/BookBorrowingModel.js");
 
 const {
   createReader,
   isExist,
   findReader,
   updateInformationReader,
+  updateStatusAccount,
+  getAllReader,
 } = require("../Model/ReaderModel.js");
 const {
   getCountCollection,
@@ -84,6 +87,7 @@ const register = async (req, res) => {
       EMAIL: req.body.EMAIL,
       CREATED: new Date(),
       isInfor: false,
+      block: false,
     };
 
     // Hash pass
@@ -124,6 +128,12 @@ const login = async (req, res) => {
       reader &&
       (await bcrypt.compare(req.body.PASSWORD, reader.HASHPASSWORD))
     ) {
+      if (reader.block) {
+        return res
+          .status(403)
+          .json({ message: "Tài khoản của bạn đã bị khóa" });
+      }
+
       if (await isExistSession(req.body.EMAIL)) {
         //Cung cấp accessToken khác
         accessToken = jwt.sign({ EMAIL: req.body.EMAIL }, SECRET, {
@@ -253,6 +263,78 @@ const isReader = async (req, res) => {
   }
 };
 
+const isBlock = async (req, res) => {
+  try {
+    const email = req.user.EMAIL;
+    const reader = await findReader({ EMAIL: email });
+    if (!reader)
+      return res.status(400).json({ message: "Không tìm thấy", block: "" });
+
+    return res.status(200).json({ block: reader.block });
+  } catch (error) {
+    return res.status(500).json({ message: "Lỗi Server", block: "" });
+  }
+};
+
+const updateBlock = async (req, res) => {
+  try {
+    let { email, state } = req.body;
+
+    console.log("Nhận state từ FE:", state, "typeof:", typeof state);
+
+    // chuyển về boolean thật
+    const newState = state === true || state === "true";
+    console.log("State convert:", newState);
+
+    // kiểm tra đọc giả
+    const reader = await findReader({ EMAIL: email });
+    if (!reader) {
+      return res
+        .status(400)
+        .json({ message: "Không tìm thấy đọc giả", block: null });
+    }
+
+    console.log("GỌI updateStatusAccount với:", email, newState);
+
+    // update dạng BOOLEAN
+    await updateStatusAccount(email, newState);
+
+    return res.status(200).json({
+      message: newState ? "Đã khóa tài khoản" : "Đã mở khóa tài khoản",
+      block: newState,
+    });
+  } catch (error) {
+    console.error("updateBlock error:", error);
+    return res.status(500).json({ message: "Lỗi server", block: null });
+  }
+};
+
+// Lấy danh sách người dùng cho dashboard
+const getDashboardUsers = async (req, res) => {
+  try {
+    const readers = await getAllReader();
+    const result = [];
+
+    for (const r of readers) {
+      const violations = await BookBorrowingModel.countViolation(r.MADOCGIA);
+
+      result.push({
+        MADOCGIA: r.MADOCGIA,
+        HOTEN: `${r.HOLOT} ${r.TEN}`,
+        EMAIL: r.EMAIL,
+        DIENTHOAI: r.DIENTHOAI,
+        block: Boolean(r.block), // ép kiểu đúng
+        VIOLATIONS: violations,
+      });
+    }
+
+    return res.status(200).json({ users: result });
+  } catch (error) {
+    console.error("Lỗi getDashboardUsers:", error);
+    return res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -262,4 +344,7 @@ module.exports = {
   updateReader,
   informationReader,
   isReader,
+  updateBlock,
+  isBlock,
+  getDashboardUsers,
 };

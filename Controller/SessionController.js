@@ -6,6 +6,7 @@ const {
   isExistSession,
   findSessionByEmail,
   createRefreshToken,
+  removeSessionByEmailEmployee,
 } = require("../Model/SessionModel");
 
 const ReaderModel = require("../Model/ReaderModel");
@@ -63,6 +64,8 @@ const logInWithGoogleAccount = async (req, res) => {
         TEN: information_user.given_name,
         HOLOT: information_user.family_name,
         EMAIL: information_user.email,
+        isInfor: false,
+        block: false,
       });
 
       await CountModel.updateCountCollection("DOCGIA", ++countDOCGIA.count);
@@ -70,6 +73,13 @@ const logInWithGoogleAccount = async (req, res) => {
 
     //tạo accesstoken và refreshToken gửi về client
     if (await isExistSession(information_user.email)) {
+      const reader = await ReaderModel.findReader({
+        EMAIL: information_user.email,
+      });
+      if (reader.block)
+        return res
+          .status(403)
+          .json({ message: "Tài khoản của bạn đã bị khóa" });
       //Cung cấp accessToken khác
       accessToken = jwt.sign({ EMAIL: information_user.email }, SECRET, {
         expiresIn: "1h",

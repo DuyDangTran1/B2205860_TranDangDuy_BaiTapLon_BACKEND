@@ -30,7 +30,7 @@ const updateInformationReader = async (email, information) => {
   await connectDB();
   const readerCollection = await getCollection("DOCGIA");
   return await readerCollection.updateOne(
-    { EMAIL: email }, // điều kiện tìm độc giả
+    { EMAIL: email },
     {
       $set: {
         HOLOT: information.HOLOT,
@@ -46,9 +46,28 @@ const updateInformationReader = async (email, information) => {
   );
 };
 
+const updateStatusAccount = async (email, state) => {
+  await connectDB();
+  const readerCollection = await getCollection("DOCGIA");
+  return readerCollection.updateOne(
+    { EMAIL: email },
+    { $set: { block: state } }
+  );
+};
+
+const getAllReader = async () => {
+  await connectDB();
+  const readerCollection = await getCollection("DOCGIA");
+  return await readerCollection
+    .find({}, { projection: { HASHPASSWORD: 0 } })
+    .toArray();
+};
+
 module.exports = {
   createReader,
   isExist,
   findReader,
   updateInformationReader,
+  updateStatusAccount,
+  getAllReader,
 };
