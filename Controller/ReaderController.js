@@ -88,6 +88,7 @@ const register = async (req, res) => {
       CREATED: new Date(),
       isInfor: false,
       block: false,
+      DIEUKHOAN: false,
     };
 
     // Hash pass
@@ -241,6 +242,7 @@ const updateReader = async (req, res) => {
       PHAI: req.body.PHAI,
       DIACHI: req.body.DIACHI,
       DIENTHOAI: req.body.DIENTHOAI,
+      DIEUKHOAN: req.body.DIEUKHOAN || false,
     });
 
     return res.status(200).json({ message: "Cập nhật thông tin thành công" });

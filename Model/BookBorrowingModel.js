@@ -6,8 +6,8 @@ const {
 
 const EmployeeModel = require("./EmployeeModel.js");
 const ReaderModel = require("./ReaderModel");
-const TimeCanBorrow = 3 * 24 * 60 * 60 * 1000;
-
+const TimeCanBorrow = 60 * 1000;
+//3 * 24 * 60 *
 const STATUS_REQUEST = {
   "Đang chờ duyệt": "Đã duyệt",
   "Đã duyệt": "Đã mượn",
@@ -89,6 +89,7 @@ async function getAllBorrowRequest() {
         TRANGTHAI: 1,
         NGAYMUON: 1,
         NGAYTRA: 1,
+        THUPHAT: 1,
       },
     },
   ]).toArray();
@@ -179,12 +180,11 @@ const updateStatus = async (id, user) => {
     }
   } catch (error) {
     console.log(error);
-    throw error;
   }
 };
 
 const CancelBorrowRequest = async (id, user) => {
-  console.log(user.Email);
+  // console.log(user.Email);
   await connectDB();
   const BorrowBookCollection = getCollection("THEODOIMUONSACH");
   const employee = await EmployeeModel.findEmployee({ Email: user.Email });
@@ -329,9 +329,14 @@ async function autoCancelExpiredApproved() {
   await connectDB();
   const BorrowBookCollection = getCollection("THEODOIMUONSACH");
 
-  const fiveDaysAgo = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
+  const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
 
-  return await BorrowBookCollection.updateMany(
+  const expiredRequests = await BorrowBookCollection.find({
+    TRANGTHAI: "Đã duyệt",
+    NGAYDUYET: { $lte: fiveDaysAgo },
+  }).toArray();
+
+  await BorrowBookCollection.updateMany(
     {
       TRANGTHAI: "Đã duyệt",
       NGAYDUYET: { $lte: fiveDaysAgo },
@@ -343,6 +348,8 @@ async function autoCancelExpiredApproved() {
       },
     }
   );
+
+  return expiredRequests;
 }
 
 const getStatisticsByMonth = async () => {
@@ -450,4 +457,5 @@ module.exports = {
   autoCancelExpiredApproved,
   getStatisticsByMonth,
   countViolation,
+  getBorrowRequestById,
 };
