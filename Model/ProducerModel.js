@@ -57,8 +57,15 @@ const findProducer = async (MANXB) => {
   return await producerCollection.findOne(MANXB);
 };
 
+const getAllProducer = async () => {
+  await connectDB();
+  const producerCollection = await getCollection("NHAXUATBAN");
+  return await producerCollection.find().toArray();
+};
+
 module.exports = {
   insertDocumentToProducer,
   insertManyDocumentToProducer,
   findProducer,
+  getAllProducer,
 };
