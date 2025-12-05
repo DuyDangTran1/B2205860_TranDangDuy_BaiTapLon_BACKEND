@@ -33,12 +33,13 @@ const updateInformationReader = async (email, information) => {
     { EMAIL: email },
     {
       $set: {
-        HOLOT: information.HOLOT,
+        HOLOT: information.HOLOT || "",
         TEN: information.TEN,
         NGAYSINH: new Date(information.NGAYSINH),
         PHAI: information.PHAI,
         DIACHI: information.DIACHI,
         DIENTHOAI: information.DIENTHOAI,
+        DIEUKHOAN: information.DIEUKHOAN || false,
         isInfor: true,
       },
     },
