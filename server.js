@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
+const multer = require("multer");
 const SECRET = "36eef8456b106cd4408d";
 const app = express();
 const {
@@ -18,6 +19,8 @@ const {
 } = require("./Controller/ReaderController.js");
 
 const BookController = require("./Controller/BooksController.js");
+
+const ProduceController = require("./Controller/ProducerController");
 
 const { refresh } = require("./Controller/SessionController.js");
 
@@ -38,6 +41,9 @@ const ReaderController = require("./Controller/ReaderController.js");
 const { decode } = require("punycode");
 
 const BookBorrowController = require("./Controller/BookBorrowController.js");
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 app.use(express.json());
 
@@ -81,7 +87,7 @@ app.use((req, res, next) => {
 app.get("/", BookController.loadDataHomePage);
 
 app.get("/api/getBookId/:id", BookController.getBookId);
-
+app.get("/api/getallinforbooks", BookController.getAllInforBooks);
 app.get("/api/getAllBook", BookController.getAllBook);
 
 app.post("/api/insertProducer", async (req, res) => {
@@ -167,18 +173,33 @@ app.put("/api/cancel/:id", BookBorrowController.CancelRequest);
 app.get("/api/reader/borrowHistory", BookBorrowController.getAllRequestReader);
 app.delete("/api/logout", SessionController.logOut);
 app.get("/api/category/:name", BookController.getBookCategory);
+app.get("/api/publishers", ProduceController.getAllProducer);
+app.get("/api/isblock", ReaderController.isBlock);
 // admin
 app.post("/api/dashboard/employeeCreate", EmployeeController.addEmployee);
 app.post("/api/dashboard/login", EmployeeController.employeeLogin);
 app.get("/api/dashboard/isEmployee", EmployeeController.isEmployee);
 app.get("/api/dashboard/pending", BookBorrowController.manageBorrowRequests);
 app.put("/api/dashboard/updateState/:id", BookBorrowController.nextState);
+app.put("/api/dashboard/users/update-block", ReaderController.updateBlock);
+app.post(
+  "/api/dashboard/insertbook",
+  upload.single("file"),
+  BookController.insertBook
+);
 app.put(
   "/api/dashboard/autoupdate",
   BookBorrowController.autoCancelExpiredApproved
 );
-app.get("/api/dashboard/statistics", BookBorrowController.getStatistics);
+app.put(
+  "/api/dashboard/updatebook/:id",
+  upload.single("file"),
+  BookController.updateBook
+);
 
+app.get("/api/dashboard/statistics", BookBorrowController.getStatistics);
+app.delete("/api/dashboard/book/:id", BookController.deleteBook);
+app.get("/api/dashboard/users", ReaderController.getDashboardUsers);
 app.listen(3000, function () {
   console.log("Server is listening");
 });
